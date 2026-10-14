@@ -1,39 +1,31 @@
-# Photo Match v2
+# Photo Match v3.1 — small GitHub upload
 
-This version replaces the original square-pixel comparison with ORB local features, reciprocal descriptor matching, and RANSAC geometric verification using bundled OpenCV 4.13.0. Processing runs locally in a Web Worker. No photos are sent to a server.
+This ZIP contains code, not the large engine files. Render downloads and verifies the engine during the build. Photos still stay in your browser; the app remains a Free Static Site. No API key or backend is needed.
 
-## Update your existing Render app
+## Update your existing site
 
-1. Extract this ZIP.
-2. Open https://github.com/chikeeokay/photomatchreport and select Add file > Upload files.
-3. Drag the complete **dist** folder plus the root README, render.yaml, test report and license files into GitHub. Replace the existing files, retaining the dist folder structure.
-4. Commit to **main**. Render is already configured to deploy this branch automatically.
-5. Wait for Render to show Live, then refresh https://photomatchreport.onrender.com. The footer should say **Photo Match v2** and Balanced should be selected by default.
+1. Extract this ZIP. Open the extracted folder.
+2. In GitHub, open `chikeeokay/photomatchreport` → Add file → Upload files.
+3. Upload the **contents**, including `build.py`, `engine-sources.json`, `render.yaml`, and the entire `dist` folder. Do not upload the ZIP itself. Commit the changes.
+4. Open your Render service → Settings → Build & Deploy. Set **Build Command** to `python3 build.py` (replace the old `true`). Keep **Publish Directory** as `dist` and Root Directory blank. Keep `SKIP_INSTALL_DEPS=true` if already configured.
+5. Save, then use Manual Deploy → Deploy latest commit if a new build did not start. Wait for the deployment to finish. Refresh and check that the footer says **Photo Match v3.1**.
 
-Render settings remain: Static Site; build command `true`; publish directory `dist`; root directory blank. No database, API key or paid web-service instance is required.
+An existing service's settings are not necessarily updated by uploading render.yaml. You must change the Build Command in step 4. If an automatic deployment ran before that change, deploy the latest commit again afterwards.
 
-Upload all files together. The new files `dist/opencv.js`, `dist/matcher.js` and `dist/match-worker.js` are required. Do not upload only index.html or the ZIP itself.
+Old v3 engine `.bin` files or `opencv.js` in GitHub do not block this update, but can be removed later. Keep all small files supplied in this package. The build overwrites the generated engine manifest and chunks. Do not include your DOCX or photos in the repository.
 
-## Four matching levels
+## Fifth option: Ultra lenient — object review
 
-| Mode | Behaviour |
-|---|---|
-| Strict | Requires many aligned details spread across both images; fewer automatic replacements. |
-| Balanced | Recommended default for resizing, lighting changes and moderate crops. |
-| Flexible | Accepts fewer verified details and less shared area. |
-| Lenient | Lowest geometric evidence requirements; inspect matches carefully. |
+Use this when a photo has changed angle or only part of the same object is visible. The model compares 25 smaller regions, in addition to the existing whole-scene descriptors. Suggestions are sorted by strongest region similarity, without requiring the whole scene to match or the candidate to prefer only one document photo.
 
-Every mode retains geometric checks and ambiguity review. Weak evidence or competing strong uploads are flagged for review. There is no forced nearest-photo fallback. Missing photos become the requested `not found in the uploaded photos` text on export. Header/footer photos remain excluded by default. One upload can replace repeated document placements.
+This is visual similarity, not an object detector or proof of object identity. Trees, sky, walls and other backgrounds can look similar. Every unconfirmed photo goes to review: **this mode never automatically accepts a replacement or rejects a photo based on its score**. The three strongest suggestions are visible; all uploads remain available in the dropdown. Choose the replacement you want, or mark it not found. After selecting your desired replacements, “Mark all remaining reviews as not found” resolves the rest. Export remains blocked while any review is unresolved.
 
-Change modes after scanning without repeating image analysis. Manual choices are retained. Click a photo to enlarge it; review cards show the top three candidates. Matching counts and spatial coverage are evidence measures, not probabilities of correctness. The scan can take several minutes for large batches; progress updates and Cancel remain available.
+Manual choices survive mode changes. Use “Use automatic suggestion” on a card to reset its choice. Strict, Balanced, Flexible and Lenient retain their previous rules. The existing watermark option and DOCX export are retained.
 
-## Limits
+## Build and privacy
 
-See TEST-RESULTS.md. Tests cover transformations of the supplied photos, not newly photographed scenes. Strong viewpoint changes, repetitive surfaces, low-detail images, major construction changes or multiple very similar photos can still need manual review. Always inspect matches before exporting an inspection report. Browser interactions have not been tested end to end in this environment.
+Build command: `python3 build.py`. Standard-library Python only; no pip/npm install required. Model revision and SHA-256 digests are pinned in engine-sources.json. Downloads are verified before publication and downloaded from their original public sources. A failed download fails the build rather than publishing incomplete engine files.
 
-The app remains compatible with Render Free Static Sites. File capacity depends on browser memory. The bundled engine increases the initial page-engine download by about 11 MB uncompressed. Original photos and documents are not included.
+The browser still downloads about 47 MB on first use. Scanning many photos can take several minutes. The smaller GitHub package fixes upload size, not browser model size. Region descriptors reuse an existing model pass; they do not require extra model downloads or passes.
 
-## Dependencies and licenses
-
-JSZip: JSZip-LICENSE.markdown.
-OpenCV 4.13.0: OpenCV-LICENSE.txt. Bundled from https://docs.opencv.org/4.x/opencv.js; the bundled build identifies itself as 4.13.0. License source: https://github.com/opencv/opencv/blob/4.13.0/LICENSE.
+The model, OpenCV, ONNX Runtime and JSZip license texts are included. DINOv2-small model: https://huggingface.co/Xenova/dinov2-small. OpenCV 4.13.0; ONNX Runtime Web 1.20.1.

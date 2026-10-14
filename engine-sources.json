@@ -1,0 +1,17 @@
+[
+  {
+    "name": "model",
+    "url": "https://huggingface.co/Xenova/dinov2-small/resolve/c2bb04a51fab207c420665f1946016107bffc701/onnx/model_quantized.onnx",
+    "sha256": "3afdc8bc63b50558d6e5770f5b799bb82455c2311183a2de43803f343a29d917"
+  },
+  {
+    "name": "wasm",
+    "url": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort-wasm-simd-threaded.wasm",
+    "sha256": "207d02be4591c156b0a98f024f3d58005b5b04c92274d759fb390338c63559ea"
+  },
+  {
+    "name": "opencv",
+    "url": "https://docs.opencv.org/4.13.0/opencv.js",
+    "sha256": "63366510248adf3a7eddf3e793dd825404efb7df3749f4d6f8557c7fa4ca8aa0"
+  }
+]

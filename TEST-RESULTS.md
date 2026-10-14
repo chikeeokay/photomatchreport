@@ -1,21 +1,13 @@
-# Photo Match v2 test results
+# v3.1 validation
 
-Tested 14 October 2026 using the same OpenCV JavaScript matcher shipped in the app.
+- Ran the shipped Python build from an empty engine cache. All three public engine downloads completed, matched their pinned SHA-256 digests, and generated the static assets successfully.
+- Launched the built site in Chromium with the actual four new uploads and a test DOCX containing the four corresponding images from the original document.
+- Verified five options appear; Ultra lenient produces four review items, no automatic matches and no automatic missing labels.
+- Every candidate received a finite region score. The correct upload appeared first for three reference photos and second for one. This is a four-upload fixture test, not a general object-recognition accuracy measurement.
+- Verified export remains blocked until review is resolved; explicit replacement choice survives mode changes; marking remaining reviews missing keeps the selected replacement; resetting a missing card restores review and blocks export again.
+- Replayed all 89 browser-produced v3 rankings across the original four modes: all 356 decisions were unchanged.
+- Confirmed region extraction produces 25 descriptors and suggestions are ordered by region similarity in the fifth mode.
 
-Original input: 89 document placements and 15 uploaded photos. Balanced produced 15 correct replacements and 74 missing results. No extra document placements were automatically matched.
+The fifth mode uses shared visual regions as suggestions, not verified object identities. Similar backgrounds can rank highly. It deliberately requires the user's decision for every previously unconfirmed image.
 
-Each transformation batch contained all 15 source photos, compared against all 15 altered candidates.
-
-| Transformation | Strict correct / review | Balanced correct / review | Flexible correct / review | Lenient correct / review | Wrong automatic matches |
-|---|---:|---:|---:|---:|---:|
-| resize | 15 / 0 | 15 / 0 | 15 / 0 | 15 / 0 | 0 |
-| crop | 13 / 2 | 15 / 0 | 15 / 0 | 15 / 0 | 0 |
-| brightness | 15 / 0 | 15 / 0 | 15 / 0 | 15 / 0 | 0 |
-| rotation | 15 / 0 | 15 / 0 | 15 / 0 | 15 / 0 | 0 |
-| watermark | 15 / 0 | 15 / 0 | 15 / 0 | 15 / 0 | 0 |
-
-Transformations: 600-pixel JPEG at quality 65; cropped to 75% of original width/height; brightness 1.25 and saturation 0.7; rotation 12 degrees; bottom watermark covering 8% of height.
-
-Worker initialization, extraction, ranking and duplicate-upload ambiguity checks passed in a Node worker adapter. All four modes sent identical competing uploads to review. JavaScript syntax checks passed. These are algorithm/worker checks, not an end-to-end browser test.
-
-These results are limited to the supplied photos and these transformations. They do not establish universal accuracy or reliability for genuinely different camera viewpoints.
+This package has been tested locally. It has not been deployed to the user's Render service.
