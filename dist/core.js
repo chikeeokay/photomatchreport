@@ -1,9 +1,5 @@
 (function(root){
 const W='http://schemas.openxmlformats.org/wordprocessingml/2006/main';
-function feature(rgb){let a=[];for(let i=0;i<rgb.length;i+=4)a.push(rgb[i]/255,rgb[i+1]/255,rgb[i+2]/255);return a}
-function distance(a,b){if(a.length!==b.length)throw Error('Incompatible fingerprints');let sum=0;for(let i=0;i<a.length;i++){let d=a[i]-b[i];sum+=d*d}return Math.sqrt(sum/a.length)}
-function rank(f,uploads){return uploads.map((u,i)=>({index:i,distance:distance(f,u.feature)})).sort((a,b)=>a.distance-b.distance)}
-function decide(r,limit){if(!r.length||r[0].distance>limit)return {status:'missing',index:null};if(r.length>1&&r[1].distance-r[0].distance<0.012&&r[0].distance>0.015)return {status:'review',index:null};return {status:'matched',index:r[0].index}}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
 function attrs(s){let o={};s.replace(/([\w:.-]+)\s*=\s*["']([^"']*)["']/g,(_,k,v)=>o[k]=v.replace(/&amp;/g,'&'));return o}
 function prefix(xml,uri,fallback){let r=new RegExp('xmlns:([\\w]+)=["\']'+uri.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'["\']').exec(xml);return r?r[1]:fallback}
@@ -15,5 +11,5 @@ async function exportDoc(zip,items,uploads){let parts={};let additions={};let ty
 for(let [part,ps] of Object.entries(parts)){let xml=await zip.file(part).async('string');for(let p of ps.sort((a,b)=>b.start-a.start))xml=xml.slice(0,p.start)+p.replacement+xml.slice(p.end);zip.file(part,xml)}for(let [rel,a] of Object.entries(additions)){let xml=await zip.file(rel).async('string');zip.file(rel,xml.replace(/<\/(?:\w+:)?Relationships>/,a.join('')+'$&'))}if(!/Extension=["']png["']/.test(types)){types=types.replace('</Types>','<Default Extension="png" ContentType="image/png"/></Types>');zip.file('[Content_Types].xml',types)}// Remove unused image relationships and media, including photos marked missing.
 let retained=new Set();for(let rel of Object.keys(zip.files).filter(n=>n.endsWith('.rels'))){let part=rel.replace('/_rels/','/').replace(/\.rels$/,'');let xml=await zip.file(rel).async('string');let content=zip.file(part)?await zip.file(part).async('string'):'';xml=xml.replace(/<(?:\w+:)?Relationship\b[^>]*\/?\s*>/g,tag=>{let a=attrs(tag);if(!a.Type||!a.Type.endsWith('/image')||a.TargetMode==='External')return tag;let referenced=new RegExp('(?:\\w+:embed|\\w+:id|\\w+:link)=["\']'+a.Id+'["\']').test(content);if(referenced){retained.add(path(part,a.Target));return tag}return ''});zip.file(rel,xml)}for(let n of Object.keys(zip.files)){if(n.startsWith('word/media/')&&!zip.files[n].dir&&!retained.has(n))zip.remove(n)}
 return zip.generateAsync({type:'uint8array',compression:'DEFLATE'})}
-root.PhotoMatch={feature,distance,rank,decide,placements,relationships,path,scan,exportDoc};if(typeof module!=='undefined')module.exports=root.PhotoMatch;
+root.PhotoMatch={placements,relationships,path,scan,exportDoc};if(typeof module!=='undefined')module.exports=root.PhotoMatch;
 })(typeof window!=='undefined'?window:globalThis);

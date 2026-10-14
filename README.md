@@ -1,62 +1,39 @@
-# Photo Match for Word
+# Photo Match v2
 
-A browser-based app that compares uploaded photos with embedded DOCX photos, replaces matching photos, ignores unused uploads, and replaces missing photos with the text `not found in the uploaded photos`.
+This version replaces the original square-pixel comparison with ORB local features, reciprocal descriptor matching, and RANSAC geometric verification using bundled OpenCV 4.13.0. Processing runs locally in a Web Worker. No photos are sent to a server.
 
-Includes Strict, Balanced, Flexible and Lenient matching, manual match review, and optional TEST REPLACEMENT watermarks. Files are processed locally in the browser. No server, database, API key or installation is needed.
+## Update your existing Render app
 
-## Upload to GitHub
+1. Extract this ZIP.
+2. Open https://github.com/chikeeokay/photomatchreport and select Add file > Upload files.
+3. Drag the complete **dist** folder plus the root README, render.yaml, test report and license files into GitHub. Replace the existing files, retaining the dist folder structure.
+4. Commit to **main**. Render is already configured to deploy this branch automatically.
+5. Wait for Render to show Live, then refresh https://photomatchreport.onrender.com. The footer should say **Photo Match v2** and Balanced should be selected by default.
 
-1. Extract the ZIP on your computer. Do not upload the ZIP itself as the app source.
-2. Create a GitHub repository.
-3. Choose **Add file > Upload files**.
-4. Upload the extracted contents, including the **dist** folder, **render.yaml**, this README and the JSZip license. Keep the folder structure intact.
-5. Commit the files to your default branch, usually **main**.
+Render settings remain: Static Site; build command `true`; publish directory `dist`; root directory blank. No database, API key or paid web-service instance is required.
 
-The repository root should contain `render.yaml` and `dist/index.html`.
+Upload all files together. The new files `dist/opencv.js`, `dist/matcher.js` and `dist/match-worker.js` are required. Do not upload only index.html or the ZIP itself.
 
-## Deploy as a Render Free Static Site
+## Four matching levels
 
-1. Open https://dashboard.render.com/static/new and connect your GitHub repository.
-2. Choose your default branch, usually **main**.
-3. Set these values:
+| Mode | Behaviour |
+|---|---|
+| Strict | Requires many aligned details spread across both images; fewer automatic replacements. |
+| Balanced | Recommended default for resizing, lighting changes and moderate crops. |
+| Flexible | Accepts fewer verified details and less shared area. |
+| Lenient | Lowest geometric evidence requirements; inspect matches carefully. |
 
-| Setting | Value |
-| --- | --- |
-| Service type | Static Site |
-| Name | docx-photo-match (or another available name) |
-| Root directory | Leave blank |
-| Build command | true |
-| Publish directory | dist |
-| Environment variable | SKIP_INSTALL_DEPS = true |
+Every mode retains geometric checks and ambiguity review. Weak evidence or competing strong uploads are flagged for review. There is no forced nearest-photo fallback. Missing photos become the requested `not found in the uploaded photos` text on export. Header/footer photos remain excluded by default. One upload can replace repeated document placements.
 
-4. Click **Deploy Static Site**.
-5. Wait until deployment is live, then open the Render-provided `onrender.com` URL.
+Change modes after scanning without repeating image analysis. Manual choices are retained. Click a photo to enlarge it; review cards show the top three candidates. Matching counts and spatial coverage are evidence measures, not probabilities of correctness. The scan can take several minutes for large batches; progress updates and Cancel remain available.
 
-Alternatively, create a Render Blueprint from this repository using the included `render.yaml`. Static sites use `runtime: static`; do not select a paid Standard web-service instance.
+## Limits
 
-Static hosting has no compute-instance charge; workspace bandwidth/build usage allowances still apply. Your selected DOCX/photos and generated downloads are processed in the browser rather than transferred to Render.
+See TEST-RESULTS.md. Tests cover transformations of the supplied photos, not newly photographed scenes. Strong viewpoint changes, repetitive surfaces, low-detail images, major construction changes or multiple very similar photos can still need manual review. Always inspect matches before exporting an inspection report. Browser interactions have not been tested end to end in this environment.
 
-## Use the app
+The app remains compatible with Render Free Static Sites. File capacity depends on browser memory. The bundled engine increases the initial page-engine download by about 11 MB uncompressed. Original photos and documents are not included.
 
-1. Select a DOCX and a batch of JPEG, PNG or WebP photos.
-2. Choose match tolerance. Strict is the default; Lenient accepts a wider range.
-3. Optionally enable test watermarks and header/footer matching.
-4. Click **Scan and compare**.
-5. Review each pair, manually resolve uncertain matches, and download the updated DOCX.
+## Dependencies and licenses
 
-Header/footer images are preserved by default. Each photo placement is matched separately; one upload can replace repeated document occurrences. There is no configured file-size or photo-count cap; practical capacity depends on browser memory. Match review is essential, especially for Flexible/Lenient settings. The matcher compares reduced-resolution visual pixels; substantial cropping or new camera angles can require manual matching.
-
-## Validation of the original app
-
-Matching and export checks using the supplied 89-photo DOCX and 15 uploaded photos found all 15 uploads, replaced 15 photo placements with watermarked copies, and marked the other 74 missing. An unrelated control was ignored. Removing one upload produced 14 matches and 75 missing placements. Browser interaction was not tested end to end in the development environment.
-
-## Files
-
-- `dist/index.html`: user interface
-- `dist/style.css`: styling
-- `dist/app.js`: browser image handling and controls
-- `dist/core.js`: matching and DOCX ZIP/XML updates
-- `dist/jszip.min.js`: bundled JSZip dependency
-- `render.yaml`: Render Static Site Blueprint
-
-No personal photos, DOCX templates, credentials or ChatGPT Sites configuration are included. JSZip is distributed under its included license.
+JSZip: JSZip-LICENSE.markdown.
+OpenCV 4.13.0: OpenCV-LICENSE.txt. Bundled from https://docs.opencv.org/4.x/opencv.js; the bundled build identifies itself as 4.13.0. License source: https://github.com/opencv/opencv/blob/4.13.0/LICENSE.
